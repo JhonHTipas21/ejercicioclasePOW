@@ -430,6 +430,89 @@
       box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
     }
 
+    /* Contenedor general de los formularios dinámicos de experiencia y habilidades */
+    .section-form {
+      margin-top: 12px;
+    }
+
+    /* Fila flexible para agrupar inputs y botones en una misma línea */
+    .section-form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* Estilos base de campos de texto, selects y textarea de los formularios */
+    .section-form-row input,
+    .section-form-row select,
+    .section-form-row textarea {
+      flex: 1 1 140px;
+      min-width: 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .section-form-row textarea {
+      border-radius: 12px;
+      resize: vertical;
+      min-height: 56px;
+    }
+
+    /* Botones de envío de los formularios dinámicos (agregar experiencia/habilidad) */
+    .section-form-row button {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(59, 130, 246, 0.1));
+      color: var(--text);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .section-form-row button:hover {
+      border-color: rgba(56, 189, 248, 1);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(59, 130, 246, 0.25));
+    }
+
+    /* Texto de ayuda bajo cada formulario */
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 6px;
+    }
+
+    /* Botones para eliminar habilidades o experiencias creadas dinámicamente */
+    .pill-remove,
+    .timeline-remove {
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.96);
+      color: rgba(148, 163, 184, 0.9);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .pill-remove:hover,
+    .timeline-remove:hover {
+      border-color: rgba(248, 113, 113, 0.9);
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.4);
+    }
+
+    .timeline-remove {
+      margin-top: 6px;
+    }
+
     @media (max-width: 900px) {
       body {
         padding: 16px;
@@ -663,6 +746,19 @@
               </div>
             </article>
           </div>
+          <!-- Formulario para agregar nuevas experiencias laborales de forma dinámica -->
+          <form class="section-form" id="experience-form">
+            <div class="section-form-row">
+              <input type="text" id="exp-period" placeholder="Periodo (ej. 2024 – Actualidad)">
+              <input type="text" id="exp-role" placeholder="Cargo">
+              <input type="text" id="exp-place" placeholder="Empresa o proyecto">
+            </div>
+            <div class="section-form-row">
+              <textarea id="exp-desc" placeholder="Descripción breve de responsabilidades y logros"></textarea>
+              <button type="submit">Agregar experiencia</button>
+            </div>
+          </form>
+          <p class="form-hint">Puedes eliminar experiencias haciendo clic en el botón de cada una.</p>
         </section>
 
         <section id="habilidades" class="section">
@@ -713,12 +809,26 @@
             <span>Inglés B2</span>
             <span>Español nativo</span>
           </div>
+          <!-- Formulario para agregar nuevas habilidades técnicas o blandas -->
+          <form class="section-form" id="skills-form">
+            <div class="section-form-row">
+              <input type="text" id="skill-name" placeholder="Nueva habilidad técnica o blanda">
+              <select id="skill-level">
+                <option value="Básico">Básico</option>
+                <option value="Intermedio">Intermedio</option>
+                <option value="Avanzado" selected>Avanzado</option>
+              </select>
+              <button type="submit">Agregar habilidad</button>
+            </div>
+          </form>
+          <p class="form-hint">Haz clic en la ✕ de una habilidad para eliminarla.</p>
         </section>
       </div>
     </main>
   </div>
 
   <script>
+    // Lógica de navegación entre secciones del panel derecho
     const menuButtons = document.querySelectorAll(".menu button");
     const sections = document.querySelectorAll(".section");
 
@@ -744,6 +854,170 @@
         activateSection(target);
       });
     });
+
+    // ---------------------------
+    // Gestión dinámica de habilidades
+    // ---------------------------
+
+    // Referencias a contenedor de habilidades y formulario asociado
+    const skillsGrid = document.querySelector(".skills-grid");
+    const skillsForm = document.getElementById("skills-form");
+    const skillNameInput = document.getElementById("skill-name");
+    const skillLevelInput = document.getElementById("skill-level");
+
+    // Añade a una habilidad existente un botón ✕ que permite eliminarla
+    function attachSkillRemoveButton(pill) {
+      const existingButton = pill.querySelector(".pill-remove");
+      if (existingButton) {
+        return;
+      }
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "pill-remove";
+      removeButton.textContent = "✕";
+      removeButton.addEventListener("click", function () {
+        skillsGrid.removeChild(pill);
+      });
+      pill.appendChild(removeButton);
+    }
+
+    // Agrega botón de eliminar a todas las habilidades definidas inicialmente en el HTML
+    const initialSkillPills = document.querySelectorAll(".skills-grid .skill-pill");
+    initialSkillPills.forEach(function (pill) {
+      attachSkillRemoveButton(pill);
+    });
+
+    // Maneja el envío del formulario de habilidades para crear nuevas "pills"
+    if (skillsForm) {
+      skillsForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const name = skillNameInput.value.trim();
+        const level = skillLevelInput.value.trim();
+
+        if (name === "") {
+          skillNameInput.focus();
+          return;
+        }
+
+        const pill = document.createElement("div");
+        pill.className = "skill-pill";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = name;
+
+        const levelSpan = document.createElement("span");
+        levelSpan.className = "level";
+        levelSpan.textContent = level;
+
+        pill.appendChild(nameSpan);
+        pill.appendChild(levelSpan);
+        skillsGrid.appendChild(pill);
+        attachSkillRemoveButton(pill);
+
+        skillNameInput.value = "";
+        skillNameInput.focus();
+      });
+    }
+
+    // ---------------------------
+    // Gestión dinámica de experiencias laborales
+    // ---------------------------
+
+    // Referencias al timeline de experiencia y al formulario asociado
+    const experienceTimeline = document.querySelector("#experiencia .timeline");
+    const experienceForm = document.getElementById("experience-form");
+    const expPeriodInput = document.getElementById("exp-period");
+    const expRoleInput = document.getElementById("exp-role");
+    const expPlaceInput = document.getElementById("exp-place");
+    const expDescInput = document.getElementById("exp-desc");
+
+    // Añade a una experiencia un botón que permite eliminarla del timeline
+    function attachExperienceRemoveButton(article) {
+      const existingButton = article.querySelector(".timeline-remove");
+      if (existingButton) {
+        return;
+      }
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "timeline-remove";
+      removeButton.textContent = "Eliminar experiencia";
+      removeButton.addEventListener("click", function () {
+        experienceTimeline.removeChild(article);
+      });
+
+      const details = article.querySelector(".details");
+      details.appendChild(removeButton);
+    }
+
+    // Agrega botón de eliminar a todas las experiencias definidas inicialmente en el HTML
+    const initialExperienceItems = document.querySelectorAll("#experiencia .timeline-item");
+    initialExperienceItems.forEach(function (item) {
+      attachExperienceRemoveButton(item);
+    });
+
+    // Maneja el envío del formulario para agregar nuevas experiencias al timeline
+    if (experienceForm) {
+      experienceForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const period = expPeriodInput.value.trim();
+        const role = expRoleInput.value.trim();
+        const place = expPlaceInput.value.trim();
+        const desc = expDescInput.value.trim();
+
+        if (period === "" || role === "" || place === "" || desc === "") {
+          if (period === "") {
+            expPeriodInput.focus();
+          } else if (role === "") {
+            expRoleInput.focus();
+          } else if (place === "") {
+            expPlaceInput.focus();
+          } else {
+            expDescInput.focus();
+          }
+          return;
+        }
+
+        const article = document.createElement("article");
+        article.className = "timeline-item";
+
+        const timeDiv = document.createElement("div");
+        timeDiv.className = "time";
+        timeDiv.textContent = period;
+
+        const detailsDiv = document.createElement("div");
+        detailsDiv.className = "details";
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "details-title";
+        titleDiv.textContent = role;
+
+        const placeDiv = document.createElement("div");
+        placeDiv.className = "details-place";
+        placeDiv.textContent = place;
+
+        const descP = document.createElement("p");
+        descP.className = "details-desc";
+        descP.textContent = desc;
+
+        detailsDiv.appendChild(titleDiv);
+        detailsDiv.appendChild(placeDiv);
+        detailsDiv.appendChild(descP);
+
+        article.appendChild(timeDiv);
+        article.appendChild(detailsDiv);
+        experienceTimeline.appendChild(article);
+        attachExperienceRemoveButton(article);
+
+        expPeriodInput.value = "";
+        expRoleInput.value = "";
+        expPlaceInput.value = "";
+        expDescInput.value = "";
+        expPeriodInput.focus();
+      });
+    }
   </script>
 </body>
 </html>
